@@ -13,8 +13,8 @@ clc         % Clear command window
 % Plot commands
 graph_pinch = 'no';             % Plot initial conditions of f and g
 graph_eigenfunctions = 'no';    % Plot the eigenfunctions
-graph_f = 'yes';                 % Plot the comparison of f and approx f
-% graph_time = 'no';              % Plot the evolution of the wave
+graph_f_approx = 'no';          % Plot the comparison of f and approx f
+graph_time = 'yes';              % Plot the evolution of the wave
 % graph_movie = 'no';             % Plot the movie of the wave evolution
 
 % Pinch commands
@@ -38,7 +38,7 @@ tmax = (2 / gg) * log(10)   % Maximum time [s] (my pdf eq.)
 tmin = 0;                   % Minimum time [s]
 tstep = (tmax - tmin) / (nst - 1);  % Time step [s]
 for i=1:nst
-  t = tmin + (i - 1) * tstep;    % Discretized time [s]
+  tt(i) = tmin + (i - 1) * tstep;    % Discretized time [s]
 end
 
 % 2. Array of discretized value of x
@@ -165,7 +165,7 @@ end
 f_approx = 0;
 g_approx = 0;
 
-if (strcmp(graph_f,'yes') == 1);
+if (strcmp(graph_f_approx,'yes') == 1);
     p3 = plot(x, f(pinch, :), 'LineWidth', 0.5);
     hold on;
     for n=1:nmax
@@ -184,4 +184,37 @@ if (strcmp(graph_f,'yes') == 1);
     title('Comparison of fs and gs');
     hold off;
     waitfor(p3)   % Stops the code execution until you close the plot
+end
+
+% 9. Numerical array of the spatial discretization of phi and successive amplitude paterns
+
+% Overlap integrals between initial conditions and the eigenfunctions
+for n = 1:nmax
+    phi_f(n) = trapz(x, f(pinch, :) .* phi(n,:));
+    phi_g(n) = trapz(x, g(pinch, :) .* phi(n,:));
+end
+
+% Wave evolution function
+if (strcmp(graph_time,'yes') == 1);    
+    for i = 1:nst
+        for j = 1:npt
+            psi(j, i) = 0;
+            for n = 1:nmax
+                term = phi_f(n) * cos(OO(n) * tt(i)) + (1/OO(n)) * phi_g(n) * sin(OO(n) * tt(i));
+                psi(j, i) = psi(j, i) + phi(n, j) * e ^ (-gg * tt(i)) * term;  % Problem solution (eq. 2.82)
+            endfor
+        endfor
+    end
+
+    % PLOT OF THE WAVE EVOLUTION
+    for (i=1:nst)
+        p4 = plot(x/L, psi(:, i), strjoin({';t=', num2str(tt(i)), 's;'}, ' '), 'LineWidth', 0.7);
+        hold on;
+    end
+    xlabel('x/L');
+    ylabel('{\psi}(x, t)');
+    title('Wave evolution');
+    legend("location", "northeastoutside")
+    hold off;
+    waitfor(p4)   % Stops the code execution until you close the plot
 end
