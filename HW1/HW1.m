@@ -27,7 +27,7 @@ L = 0.328           % String length [m]
 mu = 0.660E-3       % String mass per unit length (mu = M / L) [kg/m]
 F = 55.0            % Tension force [N]
 cc = sqrt(F/mu)     % Speed of wave propagation [m/s] (eq. 2.48)
-nmax = 20           % Maximum number of modes (to be adjusted for the good convergence of the approximation)
+nmax = 10           % Maximum number of modes (to be adjusted for the good convergence of the approximation)
 npt = 201           % Number of sampling points used in the approximation
 nst = 13            % Number of sample times
 movie=200           % Number of frames for movie
@@ -98,7 +98,7 @@ if (strcmp(graph_pinch, 'yes') == 1);
         legend("location", "northeast");
         waitfor(p1)   % Stops the code execution until you close the plot
     end
-endif
+end
 
 % 4. Compute the eigenfunctions and plot
 for n = 1:nmax
@@ -110,7 +110,7 @@ end
 % GRAPH OF EIGENFUNCTIONS
 if (strcmp(graph_eigenfunctions, 'yes') == 1);
     for n = 1:nmax
-        p2 = plot(x/L, phi(n, :), 'LineWidth', 1);
+        p2 = plot(x/L, phi(n, :), strjoin({';Mode ', num2str(n), ';'}, ''), 'LineWidth', 1);
         hold on;
     end
     xlim([xmin/L,xmax/L]);
@@ -118,6 +118,7 @@ if (strcmp(graph_eigenfunctions, 'yes') == 1);
     xlabel('x/L');
     ylabel('{\Phi(x)}');
     title('Eigenfunctions');
+    legend("location", "northeastoutside");
     hold off;
     waitfor(p2)   % Stops the code execution until you close the plot
 end
@@ -166,22 +167,23 @@ f_approx = 0;
 g_approx = 0;
 
 if (strcmp(graph_f_approx,'yes') == 1);
-    p3 = plot(x, f(pinch, :), 'LineWidth', 0.5);
+    p3 = plot(x, f(pinch, :), ';f(x) [m];', 'LineWidth', 0.5);
     hold on;
     for n=1:nmax
       f_approx = f_approx + trapz(x, f(pinch, :) .* phi(n,:)) * phi(n,:);
-    endfor
-    p3 = plot(x,f_approx, 'LineWidth', 0.5, 'LineStyle', '--');
+    end
+    p3 = plot(x, f_approx, ';f{_{approx}}(x) [m];', 'LineWidth', 0.5, 'LineStyle', '--');
 
-    p3 = plot(x, g(pinch, :), 'LineWidth', 0.5);
+    p3 = plot(x, g(pinch, :), ';g(x) [m/s];', 'LineWidth', 0.5);
     for n=1:nmax
       g_approx = g_approx + trapz(x, g(pinch, :) .* phi(n,:)) * phi(n,:);
-    endfor
-    p3 = plot(x,g_approx, 'LineWidth', 0.5, 'LineStyle', '--');
+    end
+    p3 = plot(x,g_approx, ';g{_{approx}}(x) [m/s];', 'LineWidth', 0.5, 'LineStyle', '--');
 
     xlabel('x');
-    ylabel('fs');
-    title('Comparison of fs and gs');
+    ylabel('y(x)');
+    title('Comparison of initial conditions and approximations');
+    legend("location", "northeastoutside");
     hold off;
     waitfor(p3)   % Stops the code execution until you close the plot
 end
@@ -198,32 +200,34 @@ end
 if (strcmp(graph_time,'yes') == 1);    
     for i = 1:nst
         for j = 1:npt
-            psi(j, i) = 0;
+            psi_plot(j, i) = 0;
             for n = 1:nmax
                 term = phi_f(n) * cos(OO(n) * tt(i)) + (1/OO(n)) * phi_g(n) * sin(OO(n) * tt(i));
-                psi(j, i) = psi(j, i) + phi(n, j) * e ^ (-gg * tt(i)) * term;  % Problem solution (eq. 2.82)
-            endfor
-        endfor
+                psi_plot(j, i) = psi_plot(j, i) + phi(n, j) * e ^ (-gg * tt(i)) * term;  % Problem solution (eq. 2.82)
+            end
+        end
     end
 
     % PLOT OF THE WAVE EVOLUTION
     for (i=1:nst)
-        p4 = plot(x/L, psi(:, i), strjoin({';t=', num2str(tt(i)), 's;'}, ' '), 'LineWidth', 0.7);
+        p4 = plot(x/L, psi_plot(:, i), strjoin({';t=', num2str(tt(i)), 's;'}, ' '), 'LineWidth', 0.7);
         hold on;
     end
     xlabel('x/L');
     ylabel('{\psi}(x, t)');
-    title('Wave evolution');
-    legend("location", "northeastoutside")
+    title('Wave evolution frames');
+    legend("location", "northeastoutside");
     hold off;
     waitfor(p4)   % Stops the code execution until you close the plot
 end
 
+
+
+
 % 10. MOVIE
 if (strcmp(graph_movie,'yes') == 1);
-    % longest_period = (2 * pi) / min(OO); % Longest period of the spectrum
-    % tmin = 0;                       % Minimum t abscissa
-    % tmax = 2 *longest_period;       % Maximum t abscissa
+    shortest_period = (2 * pi) / max(OO)    % Determine the shortest period
+    movie = round((tmax / shortest_period) * 10)    % Number of frames for movie, 10 frames per shortest period
     stepmov = (tmax - tmin)/(movie - 1); % Step t size
     normx = x / L;       % Normalized x discretized abscissa
 
@@ -235,7 +239,7 @@ if (strcmp(graph_movie,'yes') == 1);
     for i = 1:npt
         psi(i) = 0;
         for n = 1:nmax
-            psi(i) = psi(i) .+ phi_f(n) * phi(n, i);
+            psi(i) = psi(i) + phi_f(n) * phi(n, i);
         end
     end
 
@@ -245,8 +249,8 @@ if (strcmp(graph_movie,'yes') == 1);
     ylim([-sqrt(2/L), sqrt(2/L)]);
     line([xmin/L,xmax/L], [0, 0], 'linestyle', '-', 'linewidth', 1, 'color', [0.5, 0.5, 0.5]);
     xlabel ('x/L');
-    ylabel ('Amplitude');
-    title ('Wave evolution');
+    ylabel ('{\psi}(x, t)');
+    title ('Wave evolution movie');
 
     % Loop on frames
 
@@ -256,9 +260,9 @@ if (strcmp(graph_movie,'yes') == 1);
             psi(j) = 0;
             for n = 1:nmax
                 term = phi_f(n) * cos(OO(n) * tmov(i)) + (1 / OO(n)) * phi_g(n) * sin(OO(n) * tmov(i));
-                psi(j) = psi(j) .+ phi(n, j) * e ^ (-gg * tmov(i)) * term;  % Problem solution (eq. 2.82)
-            endfor
+                psi(j) = psi(j) + phi(n, j) * e ^ (-gg * tmov(i)) * term;  % Problem solution (eq. 2.82)
+            end
         end
         refreshdata();
-    end;
+    end
 end
