@@ -12,7 +12,7 @@ clc         % Clear command window
 
 % Plot commands
 graph_pinch = 'no';             % Plot initial conditions of f and g
-graph_eigenfunctions = 'yes';    % Plot the eigenfunctions
+graph_eigenfunctions = 'no';    % Plot the eigenfunctions
 % graph_f = 'no';                 % Plot the comparison of f and approx f
 % graph_time = 'no';              % Plot the evolution of the wave
 % graph_movie = 'no';             % Plot the movie of the wave evolution
@@ -116,10 +116,28 @@ if (strcmp(graph_eigenfunctions, 'yes') == 1);
     xlim([xmin/L,xmax/L]);
     ylim([-sqrt(2/L),sqrt(2/L)]);
     xlabel('x/L');
-    ylabel('phi(x)');
+    ylabel('{\Phi(x)}');
     title('Eigenfunctions');
     hold off;
     waitfor(p2)   % Stops the code execution until you close the plot
 end
 
 
+% 5. Displaying values after application of boundary conditions (quantization)
+for n = 1:nmax
+    kk(n) = n * pi / L;     % Wave number [m^-1] (eq. 2.64)
+end
+omega = kk * cc;            % Angular frequency [Hz] (eq. 2.65)
+
+% gg study
+
+for n = 1:nmax
+    OO(n) = sqrt(omega(n) ^ 2 - gg ^ 2);  % Omega [Hz] (eq. 2.70)
+end
+
+fprintf('\nEigenvalues\n');
+fprintf('   n        kk(n)[1/m]   OO_n[Hz]     nu_n[Hz]     T_n[s]\n');
+for n = 1:nmax
+    % Remember that experimental input data is limited to
+    fprintf('%4d %#15.3G %#15.3G %#15.3G %#15.3G\n', n, kk(n), OO(n), OO(n)/(2*pi), 2*pi/OO(n));
+end

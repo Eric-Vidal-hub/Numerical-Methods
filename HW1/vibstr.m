@@ -1,5 +1,5 @@
 #! /opt/local/bin/octave
-source('~/bin/mystartdefaults.m');
+% source('~/bin/mystartdefaults.m');
 
 % vibstr.m : 1-DIM IDEAL (UNDAMPED & PERFECTLY ELASTIC) VIBRATING STRING
 
