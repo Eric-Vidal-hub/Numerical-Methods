@@ -13,7 +13,7 @@ clc         % Clear command window
 % Plot commands
 graph_pinch = 'no';             % Plot initial conditions of f and g
 graph_eigenfunctions = 'no';    % Plot the eigenfunctions
-% graph_f = 'no';                 % Plot the comparison of f and approx f
+graph_f = 'yes';                 % Plot the comparison of f and approx f
 % graph_time = 'no';              % Plot the evolution of the wave
 % graph_movie = 'no';             % Plot the movie of the wave evolution
 
@@ -136,8 +136,52 @@ for n = 1:nmax
 end
 
 fprintf('\nEigenvalues\n');
-fprintf('   n        kk(n)[1/m]   OO_n[Hz]     nu_n[Hz]     T_n[s]\n');
+fprintf('   n        kk(n)[1/m]      OO_n[Hz]     nu_n[Hz]     T_n[s]\n');
 for n = 1:nmax
     % Remember that experimental input data is limited to
     fprintf('%4d %#15.3G %#15.3G %#15.3G %#15.3G\n', n, kk(n), OO(n), OO(n)/(2*pi), 2*pi/OO(n));
+end
+
+
+% 6. TEST ORTHONORMALIZATION OF EIGENFUNCTIONS
+fprintf('\nOrthonormalization test\n');
+fprintf('   n   <phi_n|phi_n>\n');
+for (n=1:nmax)
+    fprintf('%4d %#15.6G\n', n, trapz(x, phi(n, :) .* phi(n, :)));
+end
+
+% 7. OVERLAP INTEGRALS BETWEEN INITIAL CONDITIONS AND THE EIGENFUNCTIONS FOR THE VARIOUS PINCH TYPES
+pinch = 2  % Pinch type 2 (eq. 2.45), according to the task
+
+fprintf('\nOverlap integrals\n');
+fprintf('   n   <phi_n|f>    <phi_n|g>\n');
+for (n=1:nmax)
+    fprintf('%4d %#15.6G %#15.6G\n', n, trapz(x, f(pinch, :) .* phi(n, :)), trapz(x, g(pinch, :) .* phi(n, :))); % Overlap integrals (eq. 2.38)
+end
+
+% 8. COMPARISON OF F AND APPROX F
+
+% Variable declaration
+f_approx = 0;
+g_approx = 0;
+
+if (strcmp(graph_f,'yes') == 1);
+    p3 = plot(x, f(pinch, :), 'LineWidth', 0.5);
+    hold on;
+    for n=1:nmax
+      f_approx = f_approx + trapz(x, f(pinch, :) .* phi(n,:)) * phi(n,:);
+    endfor
+    p3 = plot(x,f_approx, 'LineWidth', 0.5, 'LineStyle', '--');
+
+    p3 = plot(x, g(pinch, :), 'LineWidth', 0.5);
+    for n=1:nmax
+      g_approx = g_approx + trapz(x, g(pinch, :) .* phi(n,:)) * phi(n,:);
+    endfor
+    p3 = plot(x,g_approx, 'LineWidth', 0.5, 'LineStyle', '--');
+
+    xlabel('x');
+    ylabel('fs');
+    title('Comparison of fs and gs');
+    hold off;
+    waitfor(p3)   % Stops the code execution until you close the plot
 end
