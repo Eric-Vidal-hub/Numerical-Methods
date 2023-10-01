@@ -14,8 +14,8 @@ clc         % Clear command window
 graph_pinch = 'no';             % Plot initial conditions of f and g
 graph_eigenfunctions = 'no';    % Plot the eigenfunctions
 graph_f_approx = 'no';          % Plot the comparison of f and approx f
-graph_time = 'yes';              % Plot the evolution of the wave
-% graph_movie = 'no';             % Plot the movie of the wave evolution
+graph_time = 'no';              % Plot the evolution of the wave
+graph_movie = 'yes';             % Plot the movie of the wave evolution
 
 % Pinch commands
 minpinch = 1;                   % Minimum number of pinches
@@ -136,7 +136,7 @@ for n = 1:nmax
 end
 
 fprintf('\nEigenvalues\n');
-fprintf('   n        kk(n)[1/m]      OO_n[Hz]     nu_n[Hz]     T_n[s]\n');
+fprintf('   n        kk(n)[1/m]      OO_n[Hz]        nu_n[Hz]         T_n[s]\n');
 for n = 1:nmax
     % Remember that experimental input data is limited to
     fprintf('%4d %#15.3G %#15.3G %#15.3G %#15.3G\n', n, kk(n), OO(n), OO(n)/(2*pi), 2*pi/OO(n));
@@ -145,7 +145,7 @@ end
 
 % 6. TEST ORTHONORMALIZATION OF EIGENFUNCTIONS
 fprintf('\nOrthonormalization test\n');
-fprintf('   n   <phi_n|phi_n>\n');
+fprintf('   n     <phi_n|phi_n>\n');
 for (n=1:nmax)
     fprintf('%4d %#15.6G\n', n, trapz(x, phi(n, :) .* phi(n, :)));
 end
@@ -154,7 +154,7 @@ end
 pinch = 2  % Pinch type 2 (eq. 2.45), according to the task
 
 fprintf('\nOverlap integrals\n');
-fprintf('   n   <phi_n|f>    <phi_n|g>\n');
+fprintf('   n     <phi_n|f>          <phi_n|g>\n');
 for (n=1:nmax)
     fprintf('%4d %#15.6G %#15.6G\n', n, trapz(x, f(pinch, :) .* phi(n, :)), trapz(x, g(pinch, :) .* phi(n, :))); % Overlap integrals (eq. 2.38)
 end
@@ -217,4 +217,48 @@ if (strcmp(graph_time,'yes') == 1);
     legend("location", "northeastoutside")
     hold off;
     waitfor(p4)   % Stops the code execution until you close the plot
+end
+
+% 10. MOVIE
+if (strcmp(graph_movie,'yes') == 1);
+    % longest_period = (2 * pi) / min(OO); % Longest period of the spectrum
+    % tmin = 0;                       % Minimum t abscissa
+    % tmax = 2 *longest_period;       % Maximum t abscissa
+    stepmov = (tmax - tmin)/(movie - 1); % Step t size
+    normx = x / L;       % Normalized x discretized abscissa
+
+    for i = 1:movie
+        tmov(i) = tmin + (i - 1) * stepmov;
+    end
+
+    % Initial psi t = 0 (eq. 2.43)
+    for i = 1:npt
+        psi(i) = 0;
+        for n = 1:nmax
+            psi(i) = psi(i) .+ phi_f(n) * phi(n, i);
+        end
+    end
+
+    g5 = plot(normx, psi, 'XDataSource', 'normx', 'YDataSource', 'psi', 'linestyle', '-', 'linewidth', 2);
+
+    xlim([xmin/L,xmax/L]);
+    ylim([-sqrt(2/L), sqrt(2/L)]);
+    line([xmin/L,xmax/L], [0, 0], 'linestyle', '-', 'linewidth', 1, 'color', [0.5, 0.5, 0.5]);
+    xlabel ('x/L');
+    ylabel ('Amplitude');
+    title ('Wave evolution');
+
+    % Loop on frames
+
+    for i = 1:movie
+        pause(0);           % Wait for a key press
+        for j = 1:npt
+            psi(j) = 0;
+            for n = 1:nmax
+                term = phi_f(n) * cos(OO(n) * tmov(i)) + (1 / OO(n)) * phi_g(n) * sin(OO(n) * tmov(i));
+                psi(j) = psi(j) .+ phi(n, j) * e ^ (-gg * tmov(i)) * term;  % Problem solution (eq. 2.82)
+            endfor
+        end
+        refreshdata();
+    end;
 end
