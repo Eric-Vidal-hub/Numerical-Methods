@@ -4,6 +4,7 @@
 % Group: 2 (QuanTEEM)
 % Email: ericvidalmarcos@gmail.com
 % Supervisors: Dr. Alain Dereux & Dr. Matthieu Sala
+% Octave Version: 8.3.0
 
 % Clear workspace
 clear all   % Clear all variables
@@ -20,7 +21,7 @@ graph_movie = 'yes';             % Plot the movie of the wave evolution
 % Pinch commands
 minpinch = 1;                   % Minimum number of pinches
 maxpinch = 2;                   % Maximum number of pinches
-% If you want to work with just one pinch, set minpinch = maxpinch
+% To set just one pinch, minpinch = maxpinch
 
 % 1. Input data and discretization parameters
 L = 0.328           % String length [m]
@@ -30,11 +31,11 @@ cc = sqrt(F/mu)     % Speed of wave propagation [m/s] (eq. 2.48)
 nmax = 10           % Maximum number of modes (to be adjusted for the good convergence of the approximation)
 npt = 201           % Number of sampling points used in the approximation
 nst = 13            % Number of sample times
-movie=200           % Number of frames for movie
+% movie=200           % Number of frames for movie development phase
 
 gg = 100.0                  % Gamma coefficient [Hz]
 dampf = 2 * gg / (cc ^ 2)   % Damping factor [s/m] (eq. 2.86)
-tmax = (2 / gg) * log(10)   % Maximum time [s] (my pdf eq.)
+tmax = (2 / gg) * log(10)   % Maximum time [s] (my pdf eq. 3)
 tmin = 0;                   % Minimum time [s]
 tstep = (tmax - tmin) / (nst - 1);  % Time step [s]
 for i=1:nst
@@ -64,7 +65,7 @@ for pinch = minpinch:maxpinch
         for i=1:npt     % Initial distribution of velocity field
             g(pinch, i) = 0;
         end
-    elseif (pinch == 2);  % eq. (2.44)
+    elseif (pinch == 2);  % eq. (2.45)
         p1 = L/4.;    % Pinched point 1
         z1 = 1;       % Amplitude of the wave 1
 
