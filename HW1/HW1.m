@@ -12,11 +12,11 @@ close all   % Close all variables
 clc         % Clear command window
 
 % Plot commands
-graph_pinch = 'yes';             % Plot initial conditions of f and g
-graph_eigenfunctions = 'yes';    % Plot the eigenfunctions
-graph_f_approx = 'yes';          % Plot the comparison of f and approx f
-graph_time = 'yes';              % Plot the evolution of the wave
-graph_movie = 'yes';             % Plot the movie of the wave evolution
+graph_pinch = 'no';             % Plot initial conditions of f and g
+graph_eigenfunctions = 'no';    % Plot the eigenfunctions
+graph_f_approx = 'no';          % Plot the comparison of f and approx f
+graph_time = 'no';              % Plot the evolution of the wave
+graph_movie = 'no';             % Plot the movie of the wave evolution
 
 % Pinch commands
 minpinch = 1;                   % Minimum number of pinches
@@ -142,8 +142,13 @@ fprintf('   n        kk(n)[1/m]      OO_n[Hz]        nu_n[Hz]         T_n[s]\n')
 for n = 1:nmax
     % Remember that experimental input data is limited to
     fprintf('%4d %#15.3G %#15.3G %#15.3G %#15.3G\n', n, kk(n), OO(n), OO(n)/(2*pi), 2*pi/OO(n));
+    a(n, 1) = n;
+    a(n, 2) = kk(n);
+    a(n, 3) = OO(n);
+    a(n, 4) = OO(n)/(2*pi);
+    a(n, 5) = 2*pi/OO(n);
 end
-
+printtable(a, 'LaTex',true);
 
 % 6. TEST ORTHONORMALIZATION OF EIGENFUNCTIONS
 fprintf('\nOrthonormalization test\n');
