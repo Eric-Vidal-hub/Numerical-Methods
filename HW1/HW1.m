@@ -12,11 +12,11 @@ close all   % Close all variables
 clc         % Clear command window
 
 % Plot commands
-graph_pinch = 'no';             % Plot initial conditions of f and g
-graph_eigenfunctions = 'no';    % Plot the eigenfunctions
-graph_f_approx = 'no';          % Plot the comparison of f and approx f
-graph_time = 'no';              % Plot the evolution of the wave
-graph_movie = 'no';             % Plot the movie of the wave evolution
+graph_pinch = 'no';            % Plot initial conditions of f and g
+graph_eigenfunctions = 'no';   % Plot the eigenfunctions
+graph_f_approx = 'no';         % Plot the comparison of f and approx f
+graph_time = 'yes';             % Plot the evolution of the wave
+graph_movie = 'no';            % Plot the movie of the wave evolution
 
 % Pinch commands
 minpinch = 1;                   % Minimum number of pinches
@@ -28,7 +28,7 @@ L = 0.328           % String length [m]
 mu = 0.660E-3       % String mass per unit length (mu = M / L) [kg/m]
 F = 55.0            % Tension force [N]
 cc = sqrt(F/mu)     % Speed of wave propagation [m/s] (eq. 2.48)
-nmax = 10           % Maximum number of modes (to be adjusted for the good convergence of the approximation)
+nmax = 20           % Maximum number of modes (to be adjusted for the good convergence of the approximation)
 npt = 201           % Number of sampling points used in the approximation
 nst = 13            % Number of sample times
 % movie=200           % Number of frames for movie development phase
@@ -93,10 +93,12 @@ if (strcmp(graph_pinch, 'yes') == 1);
         hold on
         p1 = plot(x/L, g(pinch, :), ";g(x) [m/s];", 'LineWidth', 2);
         hold off
-        xlabel('x/L');
-        ylabel('y(x)');
-        title(strjoin({'Pinch', num2str(pinch)}, ' '));
-        legend("location", "northeast");
+        xlim([-(xmax / L) * 0.1, (xmax / L) * 1.1]);
+        ylim([min(f(pinch,:)) - 0.1, max(f(pinch,:)) + 0.1]);
+        xlabel('x/L', 'FontSize', 14);
+        ylabel('y(x)', 'FontSize', 14);
+        title(strjoin({'Pinch', num2str(pinch)}, ' '), 'FontSize', 14);
+        legend("location", "northeast", 'FontSize', 14);
         waitfor(p1)   % Stops the code execution until you close the plot
     end
 end
@@ -111,15 +113,15 @@ end
 % GRAPH OF EIGENFUNCTIONS
 if (strcmp(graph_eigenfunctions, 'yes') == 1);
     for n = 1:nmax
-        p2 = plot(x/L, phi(n, :), strjoin({';Mode ', num2str(n), ';'}, ''), 'LineWidth', 1);
+        p2 = plot(x/L, phi(n, :), 'LineWidth', 1);      % For eigenfunctions labeling include strjoin({';Mode ', num2str(n), ';'}, ''),
         hold on;
     end
-    xlim([xmin/L,xmax/L]);
-    ylim([-sqrt(2/L),sqrt(2/L)]);
-    xlabel('x/L');
-    ylabel('{\Phi(x)}');
-    title('Eigenfunctions');
-    legend("location", "northeastoutside");
+    xlim([-(xmax / L) * 0.1, (xmax / L) * 1.1]);
+    ylim([-sqrt(2/L) * 1.1,sqrt(2/L) * 1.1]);
+    xlabel('x/L', 'FontSize', 14);
+    ylabel('{\Phi(x)} [m]', 'FontSize', 14);
+    title('Eigenfunctions', 'FontSize', 14);
+    % legend("location", "northeastoutside", 'FontSize', 12);   % too many eigenfunctions, they are not labeled
     hold off;
     waitfor(p2)   % Stops the code execution until you close the plot
 end
@@ -141,21 +143,24 @@ fprintf('\nEigenvalues\n');
 fprintf('   n        kk(n)[1/m]      OO_n[Hz]        nu_n[Hz]         T_n[s]\n');
 for n = 1:nmax
     % Remember that experimental input data is limited to
-    fprintf('%4d %#15.3G %#15.3G %#15.3G %#15.3G\n', n, kk(n), OO(n), OO(n)/(2*pi), 2*pi/OO(n));
-    a(n, 1) = n;
-    a(n, 2) = kk(n);
-    a(n, 3) = OO(n);
-    a(n, 4) = OO(n)/(2*pi);
-    a(n, 5) = 2*pi/OO(n);
+    % fprintf('%4d %#15.3G %#15.3G %#15.3G %#15.3G\n', n, kk(n), OO(n), OO(n)/(2*pi), 2*pi/OO(n));
+    a1(n, 1) = n;
+    a1(n, 2) = kk(n);
+    a1(n, 3) = OO(n);
+    a1(n, 4) = OO(n)/(2*pi);
+    a1(n, 5) = 2*pi/OO(n);
 end
-printtable(a, 'LaTex',true);
+printtable(a1, 'LaTex', true);
 
 % 6. TEST ORTHONORMALIZATION OF EIGENFUNCTIONS
 fprintf('\nOrthonormalization test\n');
 fprintf('   n     <phi_n|phi_n>\n');
 for (n=1:nmax)
-    fprintf('%4d %#15.6G\n', n, trapz(x, phi(n, :) .* phi(n, :)));
+    % fprintf('%4d %#15.6G\n', n, trapz(x, phi(n, :) .* phi(n, :)));
+    a2(n, 1) = n;
+    a2(n, 2) = trapz(x, phi(n, :) .* phi(n, :));
 end
+printtable(a2, 'LaTex', true);
 
 % 7. OVERLAP INTEGRALS BETWEEN INITIAL CONDITIONS AND THE EIGENFUNCTIONS FOR THE VARIOUS PINCH TYPES
 pinch = 2  % Pinch type 2 (eq. 2.45), according to the task
@@ -163,39 +168,43 @@ pinch = 2  % Pinch type 2 (eq. 2.45), according to the task
 fprintf('\nOverlap integrals\n');
 fprintf('   n     <phi_n|f>          <phi_n|g>\n');
 for (n=1:nmax)
-    fprintf('%4d %#15.6G %#15.6G\n', n, trapz(x, f(pinch, :) .* phi(n, :)), trapz(x, g(pinch, :) .* phi(n, :))); % Overlap integrals (eq. 2.38)
+    % fprintf('%4d %#15.6G %#15.6G\n', n, trapz(x, f(pinch, :) .* phi(n, :)), trapz(x, g(pinch, :) .* phi(n, :))); % Overlap integrals (eq. 2.38)
+    a3(n, 1) = n;
+    a3(n, 2) = trapz(x, f(pinch, :) .* phi(n, :));
+    a3(n, 3) = trapz(x, g(pinch, :) .* phi(n, :));
 end
+printtable(a3, 'LaTex', true);
 
 % 8. COMPARISON OF F AND APPROX F
-
 % Variable declaration
 f_approx = 0;
 g_approx = 0;
 
 if (strcmp(graph_f_approx,'yes') == 1);
-    p3 = plot(x, f(pinch, :), ';f(x) [m];', 'LineWidth', 0.5);
+    p3 = plot(x / L, f(pinch, :), ';f(x) [m];', 'LineWidth', 0.5);
     hold on;
     for n=1:nmax
       f_approx = f_approx + trapz(x, f(pinch, :) .* phi(n,:)) * phi(n,:);
     end
-    p3 = plot(x, f_approx, ';f{_{approx}}(x) [m];', 'LineWidth', 0.5, 'LineStyle', '--');
+    p3 = plot(x / L, f_approx, ';f{_{approx}}(x) [m];', 'LineWidth', 0.5, 'LineStyle', '--');
 
-    p3 = plot(x, g(pinch, :), ';g(x) [m/s];', 'LineWidth', 0.5);
+    p3 = plot(x / L, g(pinch, :), ';g(x) [m/s];', 'LineWidth', 0.5);
     for n=1:nmax
       g_approx = g_approx + trapz(x, g(pinch, :) .* phi(n,:)) * phi(n,:);
     end
-    p3 = plot(x,g_approx, ';g{_{approx}}(x) [m/s];', 'LineWidth', 0.5, 'LineStyle', '--');
+    p3 = plot(x / L, g_approx, ';g{_{approx}}(x) [m/s];', 'LineWidth', 0.5, 'LineStyle', '--');
 
-    xlabel('x');
-    ylabel('y(x)');
-    title('Comparison of initial conditions and approximations');
-    legend("location", "northeastoutside");
+    xlim([-(xmax / L) * 0.1, (xmax / L) * 1.1]);
+    ylim([-1.1, 1.1]);
+    xlabel('x/L', 'FontSize', 14);
+    ylabel('y(x)', 'FontSize', 14);
+    title('Comparison of initial conditions and approximations', 'FontSize', 14);
+    legend("location", "northeast", 'FontSize', 14);
     hold off;
     waitfor(p3)   % Stops the code execution until you close the plot
 end
 
 % 9. Numerical array of the spatial discretization of phi and successive amplitude paterns
-
 % Overlap integrals between initial conditions and the eigenfunctions
 for n = 1:nmax
     phi_f(n) = trapz(x, f(pinch, :) .* phi(n,:));
@@ -219,18 +228,18 @@ if (strcmp(graph_time,'yes') == 1);
         p4 = plot(x/L, psi_plot(:, i), strjoin({';t=', num2str(tt(i)), 's;'}, ' '), 'LineWidth', 0.7);
         hold on;
     end
-    xlabel('x/L');
-    ylabel('{\psi}(x, t)');
-    title('Wave evolution frames');
-    legend("location", "northeastoutside");
+    xlim([-(xmax / L) * 0.1, (xmax / L) * 1.1]);
+    ylim([-1.1, 1.1]);
+    xlabel('x/L', 'FontSize', 14);
+    ylabel('{\psi}(x, t) [m]', 'FontSize', 14);
+    title('Wave evolution frames', 'FontSize', 14);
+    legend("location", "northeastoutside", 'FontSize', 14);
     hold off;
-    waitfor(p4)   % Stops the code execution until you close the plot
+    waitfor(p4)     % Stops the code execution until you close the plot
 end
 
-
-
-
 % 10. MOVIE
+nmax = 10       % Maximum number of modes (to be adjusted for the sake of the movie)
 if (strcmp(graph_movie,'yes') == 1);
     shortest_period = (2 * pi) / max(OO)    % Determine the shortest period
     movie = round((tmax / shortest_period) * 10)    % Number of frames for movie, 10 frames per shortest period
@@ -251,17 +260,17 @@ if (strcmp(graph_movie,'yes') == 1);
 
     g5 = plot(normx, psi, 'XDataSource', 'normx', 'YDataSource', 'psi', 'linestyle', '-', 'linewidth', 2);
 
-    xlim([xmin/L,xmax/L]);
-    ylim([-sqrt(2/L), sqrt(2/L)]);
+    xlim([-(xmax / L) * 0.1, (xmax / L) * 1.1]);
+    ylim([-1.1, 1.1]);
     line([xmin/L,xmax/L], [0, 0], 'linestyle', '-', 'linewidth', 1, 'color', [0.5, 0.5, 0.5]);
-    xlabel ('x/L');
-    ylabel ('{\psi}(x, t)');
-    title ('Wave evolution movie');
+    xlabel ('x/L', 'FontSize', 14);
+    ylabel ('{\psi}(x, t) [m]', 'FontSize', 14);
+    title ('Wave evolution movie', 'FontSize', 14);
 
     % Loop on frames
 
     for i = 1:movie
-        pause(0);           % Wait for a key press
+        pause(0);
         for j = 1:npt
             psi(j) = 0;
             for n = 1:nmax
