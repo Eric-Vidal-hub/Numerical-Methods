@@ -12,11 +12,11 @@ close all   % Close all variables
 clc         % Clear command window
 
 % Plot commands
-graph_pinch = 'no';            % Plot initial conditions of f and g
-graph_eigenfunctions = 'no';   % Plot the eigenfunctions
-graph_f_approx = 'no';         % Plot the comparison of f and approx f
+graph_pinch = 'yes';            % Plot initial conditions of f and g
+graph_eigenfunctions = 'yes';   % Plot the eigenfunctions
+graph_f_approx = 'yes';         % Plot the comparison of f and approx f
 graph_time = 'yes';             % Plot the evolution of the wave
-graph_movie = 'no';            % Plot the movie of the wave evolution
+graph_movie = 'yes';            % Plot the movie of the wave evolution
 
 % Pinch commands
 minpinch = 1;                   % Minimum number of pinches
@@ -152,6 +152,21 @@ for n = 1:nmax
 end
 printtable(a1, 'LaTex', true);
 
+% Omegas study
+fprintf('\Omegas study\n');
+for gg = 100:300:1000
+    gg
+    fprintf('   n        oo_n[Hz]      OO_n[Hz]');
+    for n = 1:nmax
+        b1(n, 1) = n;
+        b1(n, 2) = omega(n);
+        b1(n, 3) = sqrt(omega(n) ^ 2 - gg ^ 2);
+    end
+printtable(b1, 'LaTex', true);
+end
+
+gg = 100;  % Reset gg to the original value
+
 % 6. TEST ORTHONORMALIZATION OF EIGENFUNCTIONS
 fprintf('\nOrthonormalization test\n');
 fprintf('   n     <phi_n|phi_n>\n');
@@ -239,8 +254,8 @@ if (strcmp(graph_time,'yes') == 1);
 end
 
 % 10. MOVIE
-nmax = 10       % Maximum number of modes (to be adjusted for the sake of the movie)
 if (strcmp(graph_movie,'yes') == 1);
+    nmax = 10       % Maximum number of modes (to be adjusted for the sake of the movie)
     shortest_period = (2 * pi) / max(OO)    % Determine the shortest period
     movie = round((tmax / shortest_period) * 10)    % Number of frames for movie, 10 frames per shortest period
     stepmov = (tmax - tmin)/(movie - 1); % Step t size
