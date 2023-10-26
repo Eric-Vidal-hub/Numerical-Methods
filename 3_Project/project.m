@@ -60,7 +60,7 @@ hf(1) = figure('NumberTitle', 'off', 'name', ['Square modulus of the wavefunctio
 plot(xp,Phip2); % Plotting the wavefunction inside the perturbation
 xlabel('x [A]'); % Label for the x axis
 ylabel('|\Phi|^2 [1/A]'); % Label for the y axis    
-movegui(hf(1),'northwest') % Move the figure to the northwest of the screen
+movegui(hf(1),'west') % Move the figure to the northwest of the screen
 
 % Propagating the solution outside the perturbation
 % does not require large matrices (eq. 4.49 and 4.36)
@@ -70,7 +70,7 @@ for i = 1:m
     x(i) = x_min + (i-1)*step + step/2; % Discretized abscissa [A], x = xp inside perturbation
     Phis(i) = 0; % Initial wavefunction outside the perturbation
     for j=1:n
-        Phis(i) = Phis(i) + step * exp(1i * k_0 * abs((x(i) - xp(i))))/(2 * 1i * k_0) * V(j) * Phip(j); % Wavefunction outside the perturbation (eq. 4.49)
+        Phis(i) = Phis(i) + step * exp(1i * k_0 * abs((x(i) - xp(j))))/(2 * 1i * k_0) * V(j) * Phip(j); % Wavefunction outside the perturbation (eq. 4.49)
     end
     Phi(i) = exp(1i * k_0 * x(i)) + Phis(i); % Total wavefunction (eq. 4.36)
     Proba(i) = abs(Phi(i)^2); % Probability density
@@ -81,16 +81,28 @@ Tra = Proba(m)
 RpT = Ref/Tra % Ratio between reflection and transmission coefficients
 toc
 
-% Check graph of result outside perturbation
-hf(2) = figure('NumberTitle', 'off', 'name', ['Square modulus of the wavefunction outside the perturbation'])
+% For plotting: Curve of potential in [x_min, x_max]
+Ugraph = zeros(m,1);
+for i=1:m
+    if (x(i) >= xp_min) && (x(i) <= xp_max)
+        for j=1:n
+            if (abs(x(i) - xp(j)) < 1e-12)
+                Ugraph(i) = U(j); % Potential in [x_min, x_max] [eV]
+            end
+        end
+    end
+end
+    % Check graph of result outside perturbation
+hf(2) = figure('NumberTitle', 'off', 'name', ['Scattering eigenstate']);
+hold on
 plot(x,Proba); % Plotting the wavefunction outside the perturbation
+plot(x,Ugraph); % Plotting the potential in [x_min, x_max] [eV]
+plot(x, real(Phi)); % Plotting the real part of the wavefunction outside the perturbation
+plot(x, imag(Phi)); % Plotting the imaginary part of the wavefunction outside the perturbation
 xlabel('x [A]'); % Label for the x axis
-ylabel('|\Phi|^2 [1/A]'); % Label for the y axis
-movegui(hf(2),'northeast') % Move the figure to the northeast of the screen
-
-% Check graph of result outside perturbation
-hf(3) = figure('NumberTitle', 'off', 'name', ['Square modulus of the wavefunction outside the perturbation'])
-plot(x,Proba); % Plotting the wavefunction outside the perturbation
-xlabel('x [A]'); % Label for the x axis
-ylabel('|\Phi|^2 [1/A]'); % Label for the y axis
-movegui(hf(3),'southwest') % Move the figure to the southwest of the screen
+legendstr{1} = ['|\Phi(x)|^2']; % Legend for the wavefunction
+legendstr{2} = ['U(x) [eV]']; % Legend for the potential
+legendstr{3} = ['Re(\Phi(x))']; % Legend for the real part of the wavefunction 
+legendstr{4} = ['Im(\Phi(x))']; % Legend for the imaginary part of the wavefunction
+lgd = legend(legendstr, 'location', 'eastoutside'); % Legend for the wavefunction
+movegui(hf(2),'east') % Move the figure to the northeast of the screen
