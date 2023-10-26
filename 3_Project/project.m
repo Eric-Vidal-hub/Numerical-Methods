@@ -106,3 +106,19 @@ legendstr{3} = ['Re(\Phi(x))']; % Legend for the real part of the wavefunction
 legendstr{4} = ['Im(\Phi(x))']; % Legend for the imaginary part of the wavefunction
 lgd = legend(legendstr, 'location', 'eastoutside'); % Legend for the wavefunction
 movegui(hf(2),'east') % Move the figure to the northeast of the screen
+
+
+% Current of probability in QM
+% J(r,t) = (hbar/(2*m*1i)) * (conj(Phi) * grad(Phi) - Phi * grad(conj(Phi)))
+% J(r,t) = (hbar/m) * real(conj(Phi) * grad(Phi)/1i)
+
+Current = zeros(n,1);
+deriv = zeros(n,1);
+for i=1:m-1
+    deriv(i) = (Phi(i+1) - Phi(i))/step; % Derivative of the wavefunction on the discretized grid
+end
+
+deriv(m) = deriv(m-1); % Derivative of the wavefunction on the discretized grid
+
+speed_factor = recipunit * hbar/elm; % Conversion factor for the speed of the particle
+speed_factor = speed_factor * 1e-6; % Conversion factor for the speed of the particle
