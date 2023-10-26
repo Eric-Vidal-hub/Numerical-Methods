@@ -1,0 +1,32 @@
+function [qq, rr] = GS(aa, normlization)
+
+% aa: input matrix
+% normlization: 0 for no normlization, 1 for normlization
+
+% qq: orthogonal or orthonormal matrix
+% rr: upper triangular matrix
+
+
+% get the size of the input matrix
+[m, n] = size(aa);
+
+% Sanity check
+if (m >= n):
+    fprintf('Number of rows of input matrix must be greater or eqqual than columns');
+    stop();
+end
+
+% initialize the output matrix
+qq = zeros(m, n);
+rr = zeros(n, n);
+
+% loop over the columns of the input matrix
+for i = 1:
+    if normlization == 1:
+        rr(i, i) = norm(aa(:, i));
+        qq(:, i) = aa(:, i) / rr(i, i);
+    else:
+        rr(i, i) = aa(:, i);
+        qq(:, i) = aa(:, i);
+    end
+end
