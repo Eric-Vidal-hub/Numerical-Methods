@@ -42,3 +42,6 @@ for i=1:n
     end
 end
 
+T = eye(n,n) - G0 * diag(V) % Matrix in eq. 4.51
+
+Phip = T \ Phi0p; % Wavefunction inside the perturbation (eq. 4.51)
