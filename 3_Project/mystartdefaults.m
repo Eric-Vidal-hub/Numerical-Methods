@@ -2,7 +2,7 @@
 close all;       % Close all figures if any
 clear all;       % Clear all variables/functions in memory
 clc;             % Clear screen in the command window
-addpath('~/Nextcloud/Documents/bin');% Add a directory to search path 
+% addpath('~/Nextcloud/Documents/bin');% Add a directory to search path 
 
 %% THE SEVEN EXACT DEFINING CONSTANTS OF THE SI UNIT SYSTEM (2019 UPDATE)
 %  Link to complete list of updated SI fundamental physical constants:

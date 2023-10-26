@@ -1,20 +1,25 @@
 clear all;  % Clear all variables
 clc;        % Clear the command window
+close all;  % Close all figures
+source('mystartdefaults.m'); % Contains SI physical sonstants
 
+tic
+
+% Units for free electrons in vacuum
 recipunit = 1.0E+10;
 ekinscale = ((hbar * recipunit)^2 / (2.0 * elm))/qel;
 
 % Grid for perturbation
-xp_min = 0
-xp_max = 1
-n=100   % Number of points
-step = (xp_max-xp_min)/n
+xp_min = 0;
+xp_max = 1;
+n=100;   % Number of points
+step = (xp_max-xp_min)/n;
 
 % Grid for wavefunction
-x_min = -10
-x_max = 10
+x_min = -10;
+x_max = 10;
 
-m=floor((x_max-x_min)/step)
+m=floor((x_max-x_min)/step);
 
 E_0 = 1     % Energy of the particle [eV] (eq. 4.19)
 k_0 = sqrt(E_0/ekinscale)   % Wave vector [1/A] (eq. 4.19)
@@ -42,6 +47,10 @@ for i=1:n
     end
 end
 
-T = eye(n,n) - G0 * diag(V) % Matrix in eq. 4.51
+T = eye(n,n) - G0 * diag(V); % Matrix in eq. 4.51
 
 Phip = T \ Phi0p; % Wavefunction inside the perturbation (eq. 4.51)
+
+plot(xp,abs(Phip).^2,'r'); % Plotting the wavefunction inside the perturbation
+
+toc
