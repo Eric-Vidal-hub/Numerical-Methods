@@ -23,7 +23,7 @@ E_0 = [E_min:E_step:E_max];
 k_0 = sqrt(E_0 / ekinscale);
 
 % Solving inside the perturbation
-xp = zeros(n,1);    % Fixing the size of the array as a column vector
+xp = zeros(n,1);    % Fixiing the size of the array as a column vector
 for i=1:n           % Remember: xp_min and x_max must not be included
     xp(i) = xp_min + (i-1)*step + step/2;   % Discretized abscissa [A]
 end
@@ -38,6 +38,8 @@ for i=1:n
     end
 end
 
+% Values for the GaAs
+
 V = U/ekinscale; % Unit conversion in k^2 [1/A^2] (eq. 4.9)
 
 %% SOLVING INSIDE PERTURBATION
@@ -50,7 +52,7 @@ x(2) = xp_max + 1;
 %% LOOP OVER INCIDENT ENERGIES
 G0 = zeros(n,n);  % Greens function matrix inside the barrier
 
-fprintf('    k              E_0             R           T           R+T\n')
+fprintf('    k       E_0         R        T        R+T\n')
 for k=1:length(E_0)
     if (E_0(k) == 0)
         Ref(k) = 1;
@@ -84,22 +86,4 @@ end
 
 toc
 
-% For plotting: Curve of potential in [x_min, x_max]
-Ugraph = zeros(m,1);
-for i=1:m
-    if (x(i) >= xp_min) && (x(i) <= xp_max)
-        for j=1:n
-            if (abs(x(i) - xp(j)) < 1e-12)
-                Ugraph(i) = U(j); % Potential in [x_min, x_max] [eV]
-            end
-        end
-    end
-end
-
 %% Plot
-hold on
-plot(x,Tra); % Plotting the wavefunction outside the perturbation
-plot(x,Ugraph); % Plotting the potential in [x_min, x_max] [eV]
-plot(x, real(Phi)); % Plotting the real part of the wavefunction outside the perturbation
-plot(x, imag(Phi)); % Plotting the imaginary part of the wavefunction outside the perturbation
-xlabel('x [A]'); % Label for the x axis
