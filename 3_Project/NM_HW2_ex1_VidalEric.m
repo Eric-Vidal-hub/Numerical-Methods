@@ -16,7 +16,7 @@ ekinscale = ((hbar * recipunit)^2 / (2.0 * elm)) / qel;
 % BY THE LOCALIZED GREEN'S FUNCTION METHOD FOR A PARTICLE IN A POTENTIAL WELL
 
 % The quantum junction is two potential barriers of height U(x')=0.2eV for
-% x' in [0,15]Å and [65,80]Å, and U(x)=0eV elswhere
+% x' in [0,15]Å and [65,80]Å, and U(x)=0eV elsewhere
 % The whole x range is [-20,100]Å
 
 % This resembles the order of magnitude of a heterostructure analog to
@@ -146,19 +146,71 @@ end
 resoprobas = abs(wavefunctions).^2;
 nonresoproba = abs(nonresophi).^2;
 
-% Plot of the resonant wavefunctions
+% Plot of the scaled resonant wavefunctions for readability and comparison
 figure;
-plot(xx, resoprobas(1,:), 'LineWidth', 2);
 hold on;
-plot(xx, resoprobas(2,:), 'LineWidth', 2);
-plot(xx, resoprobas(3,:), 'LineWidth', 2);
-plot(xx, resoprobas(4,:), 'LineWidth', 2);
-plot(xx, resoprobas(5,:), 'LineWidth', 2);
-plot(xx, nonresoproba, 'LineWidth', 2);
-title('Resonant Wavefunctions for the Quantum Junction', 'fontsize', 26);
+plot(xx, (100/0.2)*Ufull, 'LineWidth', 1, 'Color', 'black');
+plot(xx, (100/4.)*resoprobas(1,:), 'LineWidth', 1);
+plot(xx, (100/27.)*resoprobas(2,:), 'LineWidth', 1);
+plot(xx, (100/112.)*resoprobas(3,:), 'LineWidth', 1);
+plot(xx, (100/30.)*resoprobas(4,:), 'LineWidth', 1);
+plot(xx, (100/6.)*resoprobas(5,:), 'LineWidth', 1);
+% How to set color gray
+plot(xx, (100/4.)* nonresoproba, 'LineWidth', 1, 'Color', [0 0 0]+0.5);
+title('Scaled Resonant Wavefunctions for the Quantum Junction', 'fontsize', 26);
 xlabel('x (Å)','FontSize',18);
 ylabel('|\psi(x)|^2','FontSize',18);
-ylim([0,0.1]);
+legend('U(x)', '|\psi_1(x)|^2', '|\psi_2(x)|^2', '|\psi_3(x)|^2', '|\psi_4(x)|^2', '|\psi_5(x)|^2', '|\psi_6(x)|^2', 'Location', 'Best');
+ylim([0,125]);
+set(gca,'Box','on');
+set(gca,'linewidth',1);
+grid on;
+% Set the color of the axes and the grid to a light gray
+set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
+% Set the background color of the figure to a darker gray
+set(gcf, 'Color', [0.7 0.7 0.7]);
+% set(gca,'TickLength',[0.03, 0.02]);
+
+
+%% CRUDE APPROACH TO AN APPLIED BIAS
+% Change the potential U(x) for the quantum junction by lowering the
+% potential barrier at the right side of the junction to 0.1eV
+Ux = BarrierPotential(x_U, 0, 15, 0.2) + BarrierPotential(x_U, 65, 80, 0.1);
+% Production of R(E), T(E) and A(E) curves for the quantum junction
+energyStep = 0;      % constant background
+for i = 1:numE
+    % For each energy level, calculate the reflection (R), transmission (T), and absorption (A) coefficients
+    % using the RTA function with a parallelized for loop
+    [RR(i), TT(i), AA(i)] = RTA(energyStep, EE(i), damping, x_U, Ux, x_step, ekinscale);
+end
+
+% Plot of R(E), T(E) and A(E)
+figure;
+plot(EE, RR, 'LineWidth', 2);
+hold on;
+plot(EE, TT, 'LineWidth', 2);
+plot(EE, AA, 'LineWidth', 2);
+title('R(E), T(E) and A(E) for the Modified Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',18);
+ylabel('R(E), T(E), A(E)','FontSize',18);
+ylim([0,1]);
+set(gca,'Box','on');
+set(gca,'linewidth',1);
+grid on;
+% Set the color of the axes and the grid to a light gray
+set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
+% Set the background color of the figure to a darker gray
+set(gcf, 'Color', [0.7 0.7 0.7]);
+% set(gca,'TickLength',[0.03, 0.02]);
+legend('R(E)', 'T(E)', 'A(E)', 'Location', 'Best');
+
+% Plot only of A(E)
+figure;
+plot(EE, AA, 'LineWidth', 2);
+title('A(E) for the Modified Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',18);
+ylabel('A(E)','FontSize',18);
+ylim([0,0.005]);
 set(gca,'Box','on');
 set(gca,'linewidth',1);
 grid on;
@@ -169,4 +221,3 @@ set(gcf, 'Color', [0.7 0.7 0.7]);
 % set(gca,'TickLength',[0.03, 0.02]);
 
 toc
-

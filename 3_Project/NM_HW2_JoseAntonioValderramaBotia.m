@@ -6,9 +6,9 @@ tic
 %% Controls
 potentialplot=false;        %Plot of the potential energy for the unbiased  junction
 reftrabarrier=false;        %R-T-A plot for Equal barriers and constant background
-wavefuncts=true;           %Resonant and a non-resonant wavefunctions plots
+wavefuncts=false;           %Resonant and a non-resonant wavefunctions plots
 reftrabiasedbarrier=false;  %R-T-A plot for Different barriers and constnat background
-biasedjunctionplot=false;   %Potential energy profile for the biased junction using a step as background
+biasedjunctionplot=true;   %Potential energy profile for the biased junction using a step as background
 wavelengths=false;          %Calculate minimum and maximum wavelengths on both sides
 reftrastep=false;           %R-T-A plot for step of -0.1eV
 twostepsplot=false;         %Profiles  for the limits of the varying biased junction
@@ -147,6 +147,14 @@ legend(compalabel,"fontsize",14,"location",'northwest');
 end
 
 
+
+
+
+
+%% EXERCISE 2
+
+
+
 %% Creating the potential for the biased junction
 for ii=1:piecesin
     efield(ii)=step*xin(ii)/(xpmax-xpmin);%-step; %Taking the reference
@@ -168,7 +176,7 @@ end
 
 %% Taking the step as a reference(IMPORTANT!)
 for ii=1:piecesin
-    steppot(ii)=steppot(ii)-step; 
+    steppot(ii)=steppot(ii)-step 
 end
 
 %% Calculate minimum and maximum wavelengths on both sides
