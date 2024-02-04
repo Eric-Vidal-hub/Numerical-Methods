@@ -2,7 +2,7 @@ clear
 mystartdefaults
 
 %% Controls
-potentialplot=false;        %Plot of the potential energy for the unbiased  junction
+potentialplot=true;        %Plot of the potential energy for the unbiased  junction
 reftrabarrier=true;        %R-T-A plot for Equal barriers and constant background
 wavefuncts=false;           %Resonant and a non-resonant wavefunctions plots
 reftrabiasedbarrier=false;  %R-T-A plot for Different barriers and constnat background
@@ -12,8 +12,7 @@ reftrastep=false;           %R-T-A plot for step of -0.1eV
 twostepsplot=false;         %Profiles  for the limits of the varying biased junction
 varyingstep=false;          %R-T-A plot for varying step
 
-recipunit=1.0E+10;
-powee=1E-3;
+recipunit=1.0E+10; 
 ekinscale=(hbar*recipunit)^2/(2*elm)/qel;
 dx= 0.5; % discretization of horizontal position
 xmin=-20; %lower bound
@@ -46,7 +45,7 @@ piecesR=round((xmax-xpmax)/dx);
 for ii=1:piecesR
     xR(ii) = dx/2+xpmax+(ii-1)*dx; %positions to the right
 end
-x=[xL xin xR]; %all positions
+x=[xL xin xR] %all positions
 Vbar=barriers(xin,bar1,bar2,u1,u1); %potential with two equal height barriers inside
 Vbartot=[zeros(1,piecesL) Vbar zeros(1,piecesR)];
 
@@ -275,21 +274,31 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% FUNCTIONS %%
-
-
-%% GREEN'S FUNCTION
-function [Gf]= Greenf(step,x,xp,E,gam,ekinscale) 
-    ko=sqrt((E+1i*gam)/ekinscale);
+function [Gf]= Greenf(step,x,xp,E,gam,ekinscale)
+    %% GREEN'S FUNCTION
+    % Function to calculate the Green's function for given parameters and positions.
+    % 
+    % Syntax:  Gf = Greenf(step, x, xp, E, gam, ekinscale)
+    %
+    % Inputs:
+    %    step - A parameter related to the energy level
+    %    x, xp - The positions for which to calculate the Green's function
+    %    E - The energy level
+    %    gam - A damping factor
+    %    ekinscale - A scaling factor for the energy
+    %
+    % Outputs:
+    %    Gf - Calculated Green's function
+        ko=sqrt((E+1i*gam)/ekinscale);
     k1=sqrt((E+1i*gam-step)/ekinscale);
+    commonTerm = 1/(2i*k1);
+
     if(x>=0 && xp>=0)
-        Gf=exp(1i*k1*abs(x-xp))/(2i*k1) +  exp(1i*k1*(x+xp))*((k1-ko)/(k1+ko))/(2i*k1); % Green's function [A.76] for both positions greater than 0
+        Gf=commonTerm * (exp(1i*k1*abs(x-xp)) +  exp(1i*k1*(x+xp))*((k1-ko)/(k1+ko))); % Green's function [A.76] for both positions greater than 0
     end
 
-    if (x<0 && xp>=0)
-        Gf=exp(-1i*ko*x+1i*k1*xp)/(1i*(ko+k1)); % Green's function [A.77] for x and xp  on different sides
-    end
-    if (xp<0 && x>=0)
-        Gf=exp(-1i*ko*xp+1i*k1*x)/(1i*(ko+k1)); % Green's function [A.77] for xp and x  on different sides
+    if (x<0 && xp>=0) || (xp<0 && x>=0)
+        Gf=exp(-1i*ko*min(x,xp)+1i*k1*max(x,xp))/(1i*(ko+k1)); % Green's function [A.77] for x and xp  on different sides
     end
 end
 
