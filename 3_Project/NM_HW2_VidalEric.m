@@ -24,9 +24,9 @@ ekinscale = ((hbar * recipunit)^2 / (2.0 * elm)) / qel;
 
 %% GRID DEFINITION
 % Discretized grid for the potential U(x)
-x_step = 0.5;   % Å, Step for the grid 
-xmin = 0;       % Å, Minimum x value
-xmax = 80;      % Å, Maximum x value
+x_step = 0.5    % Å, Step for the grid 
+xmin = 0        % Å, Minimum x value
+xmax = 80       % Å, Maximum x value
 x_U = (xmin + x_step/2):x_step:(xmax - x_step/2); % Å, Discretized grid for x
 % Remaining grid
 x_neg = (-20 + x_step/2):x_step:(xmin - x_step/2); % Å, Discretized grid for x
@@ -56,10 +56,10 @@ set(gcf, 'Color', [0.7 0.7 0.7]);
 
 %% LOCALIZED GREEN'S FUNCTION METHOD
 % Energy discretization
-E_step = 0.0005; % eV, Step for the energy
-Emin = 0.0;      % eV, Minimum energy
-Emax = 0.3;      % eV, Maximum energy
-EE = (Emin + E_step/2):E_step:(Emax - E_step/2) % eV, Discretized energy
+E_step = 0.0005  % eV, Step for the energy
+Emin = 0.0       % eV, Minimum energy
+Emax = 0.3       % eV, Maximum energy
+EE = (Emin + E_step/2):E_step:(Emax - E_step/2); % eV, Discretized energy
 % E length
 numE= length(EE);
 % Recombination time (lifetime) parameter and damping factor
@@ -74,7 +74,7 @@ for i = 1:numE
     [RR(i), TT(i), AA(i)] = RTA(energyStep, EE(i), damping, x_U, Ux, x_step, ekinscale);
 end
 
-% Create a new figure
+% Plot of R(E), T(E) and A(E)
 figure;
 plot(EE, RR, 'LineWidth', 2);
 hold on;
@@ -94,6 +94,79 @@ set(gcf, 'Color', [0.7 0.7 0.7]);
 % set(gca,'TickLength',[0.03, 0.02]);
 legend('R(E)', 'T(E)', 'A(E)', 'Location', 'Best');
 
-toc
+% Plot only of A(E)
+figure;
+plot(EE, AA, 'LineWidth', 2);
+title('A(E) for the Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',18);
+ylabel('A(E)','FontSize',18);
+ylim([0,0.03]);
+set(gca,'Box','on');
+set(gca,'linewidth',1);
+grid on;
+% Set the color of the axes and the grid to a light gray
+set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
+% Set the background color of the figure to a darker gray
+set(gcf, 'Color', [0.7 0.7 0.7]);
+% set(gca,'TickLength',[0.03, 0.02]);
 
+%% RESONANT TUNNELING DIODE (RTD) MODEL
+% The RTD model is a quantum junction with a resonant level in the middle
+% of the potential barriers
+
+% Determining the resonant Energies from the past Figure
+resonanceE = [0.01075, 0.04325, 0.09525, 0.16325, 0.23975]
+nonresonantE = (resonanceE(3) + resonanceE(4)) / 2
+% Concatenate the resonant and nonresonant energies
+resoE = [resonanceE, nonresonantE]
+
+[~, nreso] = size(resoE);
+wavefunctions = zeros(nreso, length(x_neg) + length(x_U) + length(x_pos));
+Wmat = zeros(length(x_U), length(x_U));
+for ii = 1:nreso
+    k1 = sqrt((resoE(ii) + 1i * damping) / ekinscale);
+    for jj = 1:length(x_U)
+        phiok(jj) = exp(1i * k1 * x_U(jj));
+        Wmat(jj, jj) = x_step * Ux(jj) / ekinscale;
+        for kk = 1:length(x_U)
+            Go(jj, kk) = GreensFun(0, x_U(jj), x_U(kk), resoE(ii), damping, ekinscale);
+        end
+    end
+    scatt = eye(length(x_U)) - Go * Wmat;
+    phisol = scatt \ (phiok.'); 
+    for jj = 1:(length(x_neg) + length(x_U) + length(x_pos))
+        outside_sol_val = ExtraTerm(xx(jj), x_U, Ux, x_step, phisol, 0, resoE(ii), damping, ekinscale);
+        if ii < nreso
+            wavefunctions(ii, jj) = exp((xx(jj)) * 1i * k1) + outside_sol_val;
+        else
+            nonresophi(jj) = exp((xx(jj)) * 1i * k1) + outside_sol_val;
+        end
+    end
+end
+resoprobas = abs(wavefunctions).^2;
+nonresoproba = abs(nonresophi).^2;
+
+% Plot of the resonant wavefunctions
+figure;
+plot(xx, resoprobas(1,:), 'LineWidth', 2);
+hold on;
+plot(xx, resoprobas(2,:), 'LineWidth', 2);
+plot(xx, resoprobas(3,:), 'LineWidth', 2);
+plot(xx, resoprobas(4,:), 'LineWidth', 2);
+plot(xx, resoprobas(5,:), 'LineWidth', 2);
+plot(xx, nonresoproba, 'LineWidth', 2);
+title('Resonant Wavefunctions for the Quantum Junction', 'fontsize', 26);
+xlabel('x (Å)','FontSize',18);
+ylabel('|\psi(x)|^2','FontSize',18);
+ylim([0,0.1]);
+set(gca,'Box','on');
+set(gca,'linewidth',1);
+grid on;
+% Set the color of the axes and the grid to a light gray
+set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
+% Set the background color of the figure to a darker gray
+set(gcf, 'Color', [0.7 0.7 0.7]);
+% set(gca,'TickLength',[0.03, 0.02]);
+
+toc
 

@@ -21,7 +21,7 @@ function[extraSolution]= ExtraTerm(position, potentialPositions, potentialValues
     extraSolution=0;
     [~,numberOfPotentialPositions]=size(potentialPositions);
     scale = delta/energyScale;
-    for ii=1:numberOfPotentialPositions
+    parfor ii=1:numberOfPotentialPositions
         extraSolution=extraSolution+GreensFun(energyStep, position, potentialPositions(ii), energy, damping, energyScale)*scale*potentialValues(ii)*waveFunctionSolution(ii); %equation [4.36]
     end
 end

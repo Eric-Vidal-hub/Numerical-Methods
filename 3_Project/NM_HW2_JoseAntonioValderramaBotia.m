@@ -1,10 +1,12 @@
 clear
 mystartdefaults
 
+tic
+
 %% Controls
-potentialplot=true;        %Plot of the potential energy for the unbiased  junction
-reftrabarrier=true;        %R-T-A plot for Equal barriers and constant background
-wavefuncts=false;           %Resonant and a non-resonant wavefunctions plots
+potentialplot=false;        %Plot of the potential energy for the unbiased  junction
+reftrabarrier=false;        %R-T-A plot for Equal barriers and constant background
+wavefuncts=true;           %Resonant and a non-resonant wavefunctions plots
 reftrabiasedbarrier=false;  %R-T-A plot for Different barriers and constnat background
 biasedjunctionplot=false;   %Potential energy profile for the biased junction using a step as background
 wavelengths=false;          %Calculate minimum and maximum wavelengths on both sides
@@ -45,7 +47,7 @@ piecesR=round((xmax-xpmax)/dx);
 for ii=1:piecesR
     xR(ii) = dx/2+xpmax+(ii-1)*dx; %positions to the right
 end
-x=[xL xin xR] %all positions
+x=[xL xin xR]; %all positions
 Vbar=barriers(xin,bar1,bar2,u1,u1); %potential with two equal height barriers inside
 Vbartot=[zeros(1,piecesL) Vbar zeros(1,piecesR)];
 
@@ -270,6 +272,8 @@ title('First NDR peak',"fontsize", 20);
 set(ax,'xlim',[0.064,0.07],'ylim',[0.0,0.17]); %'xlim',[0.065,0.07]
 
 end
+
+toc
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
