@@ -34,6 +34,10 @@ x_pos = (xmax + x_step/2):x_step:(100 - x_step/2); % Å, Discretized grid for x
 % Total grid
 xx = [x_neg, x_U, x_pos]; % Å, Discretized grid for x
 
+% Potential U(x) for the quantum junction
+Ux = BarrierPotential(x_U, 0, 15, 0.2) + BarrierPotential(x_U, 65, 80, 0.2);
+Ufull = [zeros(1,length(x_neg)), Ux, zeros(1,length(x_pos))];
+
 % Energy discretization
 E_step = 0.0005  % eV, Step for the energy
 Emin = 0.0       % eV, Minimum energy
@@ -44,10 +48,6 @@ numE= length(EE);
 % Recombination time (lifetime) parameter and damping factor
 recombT = 1.0E-9; % ns
 damping=(hbar * 2*pi / recombT) / qel;
-
-% Potential U(x) for the quantum junction
-Ux = BarrierPotential(x_U, 0, 15, 0.2) + BarrierPotential(x_U, 65, 80, 0.2);
-Ufull = [zeros(1,length(x_neg)), Ux, zeros(1,length(x_pos))];
 
 % Potential bias due to an electric field aplied to the heterojunction for x>0
 % Liniar potential with a slope of -0.1eV/Å and width of the heterostructure
@@ -181,5 +181,62 @@ set(gcf, 'Color', [0.7 0.7 0.7]);
 %% RTA FOR THE ELECTRON AT THE FERMI LEVEL
 % Fine U1 step of 0.0005eV, compute current-bias curve in this range of bias
 % Electrical resistance, diode?
+setE=0.01; % eV, E0
+
+EE = (Emin + E_step/2 + U0min):E_step:(Emax - E_step/2 + U0min); % eV, Discretized energy
+
+for i=1:length(EE)
+    for j=1:length(x_U)
+        perturbation(j) = EE(i)*x_U(j)/(xmax-xmin) - EE(i);
+    end
+    Upertu=Ux+perturbation;
+    [RR(i), TT(i), AA(i)] = RTA(EE(i), setE, damping, x_U, Upertu, x_step, ekinscale);
+end
+
+
+% Plot of R(E), T(E) and A(E)
+% Note that the x axis is reversed
+figure;
+plot(-EE, RR, 'LineWidth', 2);
+hold on;
+plot(-EE, TT, 'LineWidth', 2);
+plot(-EE, AA, 'LineWidth', 2);
+title('R(E), T(E) and A(E) for the Biased Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',18);
+ylabel('R(E), T(E), A(E)','FontSize',18);
+ylim([0,1]);
+set(gca,'Box','on');
+set(gca,'linewidth',1);
+grid on;
+% Set the color of the axes and the grid to a light gray
+set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
+% Set the background color of the figure to a darker gray
+set(gcf, 'Color', [0.7 0.7 0.7]);
+% set(gca,'TickLength',[0.03, 0.02]);
+legend('R(E)', 'T(E)', 'A(E)', 'Location', 'Best');
+
+
+% Plot of R(E), T(E) and A(E)
+% Note that the x axis is reversed
+figure;
+plot(-EE, RR, 'LineWidth', 2);
+hold on;
+plot(-EE, TT, 'LineWidth', 2);
+plot(-EE, AA, 'LineWidth', 2);
+title('R(E), T(E) and A(E) for the Biased Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',18);
+ylabel('R(E), T(E), A(E)','FontSize',18);
+xlim([0.06,0.07]);
+ylim([0,0.2]);
+set(gca,'Box','on');
+set(gca,'linewidth',1);
+grid on;
+% Set the color of the axes and the grid to a light gray
+set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
+% Set the background color of the figure to a darker gray
+set(gcf, 'Color', [0.7 0.7 0.7]);
+% set(gca,'TickLength',[0.03, 0.02]);
+legend('R(E)', 'T(E)', 'A(E)', 'Location', 'Best');
+
 
 toc

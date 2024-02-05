@@ -11,8 +11,8 @@ reftrabiasedbarrier=false;  %R-T-A plot for Different barriers and constnat back
 biasedjunctionplot=false;   %Potential energy profile for the biased junction using a step as background
 wavelengths=false;          %Calculate minimum and maximum wavelengths on both sides
 reftrastep=false;           %R-T-A plot for step of -0.1eV
-twostepsplot=true;         %Profiles  for the limits of the varying biased junction
-varyingstep=false;          %R-T-A plot for varying step
+twostepsplot=false;         %Profiles  for the limits of the varying biased junction
+varyingstep=true;          %R-T-A plot for varying step
 
 recipunit=1.0E+10; 
 ekinscale=(hbar*recipunit)^2/(2*elm)/qel;
