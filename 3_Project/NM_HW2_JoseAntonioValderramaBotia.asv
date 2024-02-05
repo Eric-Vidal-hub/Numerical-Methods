@@ -9,9 +9,9 @@ reftrabarrier=false;        %R-T-A plot for Equal barriers and constant backgrou
 wavefuncts=false;           %Resonant and a non-resonant wavefunctions plots
 reftrabiasedbarrier=false;  %R-T-A plot for Different barriers and constnat background
 biasedjunctionplot=false;   %Potential energy profile for the biased junction using a step as background
-wavelengths=false;          %Calculate minimum and maximum wavelengths on both sides
+wavelengths=t;          %Calculate minimum and maximum wavelengths on both sides
 reftrastep=false;           %R-T-A plot for step of -0.1eV
-twostepsplot=true;         %Profiles  for the limits of the varying biased junction
+twostepsplot=false;         %Profiles  for the limits of the varying biased junction
 varyingstep=false;          %R-T-A plot for varying step
 
 recipunit=1.0E+10; 
@@ -176,7 +176,7 @@ end
 
 %% Taking the step as a reference(IMPORTANT!)
 for ii=1:piecesin
-    steppot(ii)=steppot(ii)-step;
+    steppot(ii)=steppot(ii)-step 
 end
 
 %% Calculate minimum and maximum wavelengths on both sides
@@ -213,11 +213,6 @@ ylabel('Coefficient',"fontsize", 15);
 title('Biased junction(-0.1eV)',"fontsize", 25);
 legend(compalabel,"fontsize",14,"location",'best');
 end
-
-
-
-
-
 
 %% Profiles  for the limits of the varying biased junction
 if(twostepsplot) 
