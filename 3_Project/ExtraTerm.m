@@ -1,27 +1,31 @@
-%% OUTSIDE SOLUTION
-% Function to calculate the extra part added to the solution due to the potential.
-%
-% Syntax:  extraSolution = ExtraTerm(position, potentialPositions, potentialValues, delta, waveFunctionSolution, energyStep, energy, damping, energyScale)
-%
-% Inputs:
-%    position - The position for which to calculate the extra solution
-%    potentialPositions - The positions of the potential
-%    potentialValues - The values of the potential at the corresponding positions
-%    delta - A small change in position
-%    waveFunctionSolution - The solution of the wave function at the potential positions
-%    energyStep - A parameter related to the energy level
-%    energy - The energy level
-%    damping - A damping factor
-%    energyScale - A scaling factor for the energy
-%
-% Outputs:
-%    extraSolution - Calculated extra part of the solution
-
-function[extraSolution]= ExtraTerm(position, potentialPositions, potentialValues, delta, waveFunctionSolution, energyStep, energy, damping, energyScale)
-    extraSolution=0;
-    [~,numberOfPotentialPositions]=size(potentialPositions);
-    scale = delta/energyScale;
-    parfor ii=1:numberOfPotentialPositions
-        extraSolution=extraSolution+GreensFun(energyStep, position, potentialPositions(ii), energy, damping, energyScale)*scale*potentialValues(ii)*waveFunctionSolution(ii); %equation [4.36]
+function[extraTermSolution] = ExtraTerm(position, potentialPositions, potentialValues, delta, waveFunctionSolution, energyStep, energy, damping, energyScale)
+    %% Function to calculate the extra term in the wave function solution
+    % This function calculates the extra term in the wave function solution
+    % for a given position, potential positions, potential values, delta, wave function solution,
+    % energy step, energy, damping, and energy scale. It does this by iterating over each potential position
+    % and summing the product of the Green's function, scale, potential value, and wave function solution.
+    %
+    % Parameters:
+    % position: The position
+    % potentialPositions: The potential positions
+    % potentialValues: The potential values
+    % delta: The delta
+    % waveFunctionSolution: The wave function solution
+    % energyStep: The energy step
+    % energy: The energy
+    % damping: The damping
+    % energyScale: The energy scale
+    %
+    % Returns:
+    % extraTermSolution: The extra term in the wave function solution
+    
+        extraTermSolution = 0; % Initialize the extra term solution
+        [~, numPotentialPositions] = size(potentialPositions); % Get the number of potential positions
+        scale = delta / energyScale; % Calculate the scale
+    
+        % Iterate over each potential position
+        parfor i = 1:numPotentialPositions
+            % Calculate the extra term in the wave function solution (equation [4.36])
+            extraTermSolution = extraTermSolution + GreensFun(energyStep, position, potentialPositions(i), energy, damping, energyScale) * scale * potentialValues(i) * waveFunctionSolution(i);
+        end
     end
-end

@@ -14,15 +14,22 @@ function [greenFunction]= GreensFun(energyStep,position1,position2,energy,dampin
     % Outputs:
     %    greenFunction - Calculated Green's function
 
-    waveNumberOutside=sqrt((energy+1i*damping)/energyScale);
-    waveNumberInside=sqrt((energy+1i*damping-energyStep)/energyScale);
-    commonTerm = 1/(2i*waveNumberInside);
+    % Calculate the wave number outside the potential
+    waveNumberOutside = sqrt((energy + 1i * damping) / energyScale);
+    
+    % Calculate the wave number inside the potential
+    waveNumberInside = sqrt((energy + 1i * damping - energyStep) / energyScale);
+    
+    % Calculate the common term used in the Green's function
+    commonTerm = 1 / (2i * waveNumberInside);
 
-    if(position1>=0 && position2>=0)
-        greenFunction=commonTerm * (exp(1i*waveNumberInside*abs(position1-position2)) +  exp(1i*waveNumberInside*(position1+position2))*((waveNumberInside-waveNumberOutside)/(waveNumberInside+waveNumberOutside))); % Green's function [A.76] for both positions greater than 0
+    % If both positions are greater than or equal to 0, calculate the Green's function using equation [A.76]
+    if(position1 >= 0 && position2 >= 0)
+        greenFunction = commonTerm * (exp(1i * waveNumberInside * abs(position1 - position2)) +  exp(1i * waveNumberInside * (position1 + position2)) * ((waveNumberInside - waveNumberOutside) / (waveNumberInside + waveNumberOutside)));
     end
 
-    if (position1<0 && position2>=0) || (position2<0 && position1>=0)
-        greenFunction=exp(-1i*waveNumberOutside*min(position1,position2)+1i*waveNumberInside*max(position1,position2))/(1i*(waveNumberOutside+waveNumberInside)); % Green's function [A.77] for position1 and position2  on different sides
+    % If position1 and position2 are on different sides of the potential, calculate the Green's function using equation [A.77]
+    if (position1 < 0 && position2 >= 0) || (position2 < 0 && position1 >= 0)
+        greenFunction = exp(-1i * waveNumberOutside * min(position1, position2) + 1i * waveNumberInside * max(position1, position2)) / (1i * (waveNumberOutside + waveNumberInside));
     end
 end

@@ -2,7 +2,7 @@
 close all;       % Close all figures if any
 clear all;       % Clear all variables/functions in memory
 clc;             % Clear screen in the command window
-%source('mystartdefaults.m'); % Contains SI physical sonstants
+%source('mystartdefaults.m'); % Contains SI physical constants
 mystartdefaults; % Contains SI physical sonstants
 
 tic
@@ -41,9 +41,10 @@ Ufull = [zeros(1,length(x_neg)), Ux, zeros(1,length(x_pos))];
 % Create a new figure
 figure;
 plot(xx, Ufull, 'LineWidth', 2);
-title('Barrier Potential', 'fontsize', 26);
-xlabel('x (Å)','FontSize',18);
-ylabel('U (eV)','FontSize',18);
+% title('Barrier Potential', 'fontsize', 26);
+xlabel('x (Å)','FontSize',26);
+ylabel('U (eV)','FontSize',26);
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 ylim([0,0.22]);
 set(gca,'Box','on');
 set(gca,'linewidth',1);
@@ -68,38 +69,15 @@ damping=(hbar * 2*pi / recombT) / qel;
 
 % Production of R(E), T(E) and A(E) curves for the quantum junction
 energyStep = 0;      % constant background
-for i = 1:numE
-    % For each energy level, calculate the reflection (R), transmission (T), and absorption (A) coefficients
-    % using the RTA function with a parallelized for loop
-    [RR(i), TT(i), AA(i)] = RTA(energyStep, EE(i), damping, x_U, Ux, x_step, ekinscale);
-end
-
-% Plot of R(E), T(E) and A(E)
-figure;
-plot(EE, RR, 'LineWidth', 2);
-hold on;
-plot(EE, TT, 'LineWidth', 2);
-plot(EE, AA, 'LineWidth', 2);
-title('R(E), T(E) and A(E) for the Quantum Junction', 'fontsize', 26);
-xlabel('E (eV)','FontSize',18);
-ylabel('R(E), T(E), A(E)','FontSize',18);
-ylim([0,1]);
-set(gca,'Box','on');
-set(gca,'linewidth',1);
-grid on;
-% Set the color of the axes and the grid to a light gray
-set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
-% Set the background color of the figure to a darker gray
-set(gcf, 'Color', [0.7 0.7 0.7]);
-% set(gca,'TickLength',[0.03, 0.02]);
-legend('R(E)', 'T(E)', 'A(E)', 'Location', 'Best');
+[RR, TT, AA] = RTA(energyStep, EE, damping, x_U, Ux, x_step, ekinscale);
 
 % Plot only of A(E)
 figure;
 plot(EE, AA, 'LineWidth', 2);
-title('A(E) for the Quantum Junction', 'fontsize', 26);
-xlabel('E (eV)','FontSize',18);
-ylabel('A(E)','FontSize',18);
+% title('A(E) for the Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',26);
+ylabel('A(E)','FontSize',26);
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 ylim([0,0.03]);
 set(gca,'Box','on');
 set(gca,'linewidth',1);
@@ -120,47 +98,71 @@ nonresonantE = (resonanceE(3) + resonanceE(4)) / 2
 % Concatenate the resonant and nonresonant energies
 resoE = [resonanceE, nonresonantE]
 
-[~, nreso] = size(resoE);
-wavefunctions = zeros(nreso, length(x_neg) + length(x_U) + length(x_pos));
-Wmat = zeros(length(x_U), length(x_U));
-for ii = 1:nreso
-    k1 = sqrt((resoE(ii) + 1i * damping) / ekinscale);
-    for jj = 1:length(x_U)
-        phiok(jj) = exp(1i * k1 * x_U(jj));
-        Wmat(jj, jj) = x_step * Ux(jj) / ekinscale;
-        for kk = 1:length(x_U)
-            Go(jj, kk) = GreensFun(0, x_U(jj), x_U(kk), resoE(ii), damping, ekinscale);
+% Get the number of resonant energies
+[~, numResonantEnergies] = size(resoE);
+
+% Initialize wavefunctions matrix and potential matrix
+wavefunctions = zeros(numResonantEnergies, length(x_neg) + length(x_U) + length(x_pos));
+potentialMatrix = zeros(length(x_U), length(x_U));
+
+% Loop over each resonant energy
+for energyIndex = 1:numResonantEnergies
+    % Calculate the wave number for the current resonant energy
+    waveNumber = sqrt((resoE(energyIndex) + 1i * damping) / ekinscale);
+    
+    % Loop over each point in the potential
+    for potentialIndex = 1:length(x_U)
+        % Calculate the wave function at the current point for the current wave number
+        waveFunctionAtWaveNumber(potentialIndex) = exp(1i * waveNumber * x_U(potentialIndex));
+        
+        % Update the potential matrix
+        potentialMatrix(potentialIndex, potentialIndex) = x_step * Ux(potentialIndex) / ekinscale;
+        
+        % Calculate the Green's function matrix
+        for greenIndex = 1:length(x_U)
+            greenMatrix(potentialIndex, greenIndex) = GreensFun(0, x_U(potentialIndex), x_U(greenIndex), resoE(energyIndex), damping, ekinscale);
         end
     end
-    scatt = eye(length(x_U)) - Go * Wmat;
-    phisol = scatt \ (phiok.'); 
-    for jj = 1:(length(x_neg) + length(x_U) + length(x_pos))
-        outside_sol_val = ExtraTerm(xx(jj), x_U, Ux, x_step, phisol, 0, resoE(ii), damping, ekinscale);
-        if ii < nreso
-            wavefunctions(ii, jj) = exp((xx(jj)) * 1i * k1) + outside_sol_val;
+    
+    % Calculate the scattering matrix
+    scatteringMatrix = eye(length(x_U)) - greenMatrix * potentialMatrix;
+    
+    % Solve the scattering equation to get the wave function solution
+    waveFunctionSolution = scatteringMatrix \ (waveFunctionAtWaveNumber.'); 
+    
+    % Loop over each point in the entire region
+    for positionIndex = 1:(length(x_neg) + length(x_U) + length(x_pos))
+        % Calculate the extra term in the wave function solution
+        extraTermValue = ExtraTerm(xx(positionIndex), x_U, Ux, x_step, waveFunctionSolution, 0, resoE(energyIndex), damping, ekinscale);
+        
+        % Update the wave function solution with the extra term
+        if energyIndex < numResonantEnergies
+            wavefunctions(energyIndex, positionIndex) = exp((xx(positionIndex)) * 1i * waveNumber) + extraTermValue;
         else
-            nonresophi(jj) = exp((xx(jj)) * 1i * k1) + outside_sol_val;
+            nonResonantWaveFunction(positionIndex) = exp((xx(positionIndex)) * 1i * waveNumber) + extraTermValue;
         end
     end
 end
-resoprobas = abs(wavefunctions).^2;
-nonresoproba = abs(nonresophi).^2;
+
+% Calculate the probability densities for the wavefunctions
+resonantProbabilities = abs(wavefunctions).^2;
+nonResonantProbability = abs(nonResonantWaveFunction).^2;
 
 % Plot of the scaled resonant wavefunctions for readability and comparison
 figure;
 hold on;
-plot(xx, (100/0.2)*Ufull, 'LineWidth', 1, 'Color', 'black');
-plot(xx, (100/4.)*resoprobas(1,:), 'LineWidth', 1);
-plot(xx, (100/27.)*resoprobas(2,:), 'LineWidth', 1);
-plot(xx, (100/112.)*resoprobas(3,:), 'LineWidth', 1);
-plot(xx, (100/30.)*resoprobas(4,:), 'LineWidth', 1);
-plot(xx, (100/6.)*resoprobas(5,:), 'LineWidth', 1);
-% How to set color gray
-plot(xx, (100/4.)* nonresoproba, 'LineWidth', 1, 'Color', [0 0 0]+0.5);
-title('Scaled Resonant Wavefunctions for the Quantum Junction', 'fontsize', 26);
-xlabel('x (Å)','FontSize',18);
-ylabel('|\psi(x)|^2','FontSize',18);
-legend('U(x)', '|\psi_1(x)|^2', '|\psi_2(x)|^2', '|\psi_3(x)|^2', '|\psi_4(x)|^2', '|\psi_5(x)|^2', '|\psi_6(x)|^2', 'Location', 'Best');
+plot(xx, (100/0.2)*Ufull, 'LineWidth', 2, 'Color', 'black');
+plot(xx, (100/4.)*resonantProbabilities(1,:), 'LineWidth', 1);
+plot(xx, (100/27.)*resonantProbabilities(2,:), 'LineWidth', 1);
+plot(xx, (100/112.)*resonantProbabilities(3,:), 'LineWidth', 1);
+plot(xx, (100/30.)*resonantProbabilities(4,:), 'LineWidth', 1);
+plot(xx, (100/6.)*resonantProbabilities(5,:), 'LineWidth', 1);
+plot(xx, (100/4.)* nonResonantProbability, 'LineWidth', 2, 'Color', [0 0 0]+0.5); % How to set color gray
+% title('Scaled Resonant Wavefunctions for the Quantum Junction', 'fontsize', 26);
+xlabel('x (Å)','FontSize',26);
+ylabel('|\psi(x)|^2','FontSize',26);
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
+legend('U(x)', '|\psi_1(x)|^2', '|\psi_2(x)|^2', '|\psi_3(x)|^2', '|\psi_4(x)|^2', '|\psi_5(x)|^2', '|\psi_{nr}(x)|^2', 'Location', 'eastoutside');
 ylim([0,125]);
 set(gca,'Box','on');
 set(gca,'linewidth',1);
@@ -178,38 +180,16 @@ set(gcf, 'Color', [0.7 0.7 0.7]);
 Ux = BarrierPotential(x_U, 0, 15, 0.2) + BarrierPotential(x_U, 65, 80, 0.1);
 % Production of R(E), T(E) and A(E) curves for the quantum junction
 energyStep = 0;      % constant background
-for i = 1:numE
-    % For each energy level, calculate the reflection (R), transmission (T), and absorption (A) coefficients
-    % using the RTA function with a parallelized for loop
-    [RR(i), TT(i), AA(i)] = RTA(energyStep, EE(i), damping, x_U, Ux, x_step, ekinscale);
-end
 
-% Plot of R(E), T(E) and A(E)
-figure;
-plot(EE, RR, 'LineWidth', 2);
-hold on;
-plot(EE, TT, 'LineWidth', 2);
-plot(EE, AA, 'LineWidth', 2);
-title('R(E), T(E) and A(E) for the Modified Quantum Junction', 'fontsize', 26);
-xlabel('E (eV)','FontSize',18);
-ylabel('R(E), T(E), A(E)','FontSize',18);
-ylim([0,1]);
-set(gca,'Box','on');
-set(gca,'linewidth',1);
-grid on;
-% Set the color of the axes and the grid to a light gray
-set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
-% Set the background color of the figure to a darker gray
-set(gcf, 'Color', [0.7 0.7 0.7]);
-% set(gca,'TickLength',[0.03, 0.02]);
-legend('R(E)', 'T(E)', 'A(E)', 'Location', 'Best');
+[RR, TT, AA] = RTA(energyStep, EE, damping, x_U, Ux, x_step, ekinscale);
 
 % Plot only of A(E)
 figure;
 plot(EE, AA, 'LineWidth', 2);
-title('A(E) for the Modified Quantum Junction', 'fontsize', 26);
-xlabel('E (eV)','FontSize',18);
-ylabel('A(E)','FontSize',18);
+% title('A(E) for the Modified Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',26);
+ylabel('A(E)','FontSize',26);
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 ylim([0,0.005]);
 set(gca,'Box','on');
 set(gca,'linewidth',1);

@@ -2,7 +2,7 @@
 close all;       % Close all figures if any
 clear all;       % Clear all variables/functions in memory
 clc;             % Clear screen in the command window
-%source('mystartdefaults.m'); % Contains SI physical sonstants
+%source('mystartdefaults.m'); % Contains SI physical constants
 mystartdefaults; % Contains SI physical sonstants
 
 tic
@@ -18,6 +18,8 @@ ekinscale = ((hbar * recipunit)^2 / (2.0 * elm)) / qel;
 % The quantum junction is two potential barriers of height U(x')=0.2eV for
 % x' in [0,15]Å and [65,80]Å, and U(x)=0eV elsewhere
 % The whole x range is [-20,100]Å
+% Then an electric field is applied, so it modifies the potential,
+% resulting in a biased potential.
 
 % This resembles the order of magnitude of a heterostructure analog to
 % resonant tunneling devices in GaAs-AlGaAs
@@ -60,12 +62,14 @@ Ufull_biased = [zeros(1,length(x_neg)), Ubiased, Ebias*ones(1,length(x_pos))];
 % Plot the biased potential U(x)
 figure(1)
 plot(xx, Ufull, 'b', xx, Ufull_biased, 'r')
-title('Potential U(x) for the quantum junction')
+% title('Potential U(x) for the quantum junction')
 xlabel('x [Å]')
 ylabel('U(x) [eV]')
+ylim([-0.15,0.35])
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 set(gca,'Box','on');
 set(gca,'linewidth',1);
-legend('U(x)', 'U(x) + U_{bias}(x)')
+legend('U(x)', 'U(x) + U_{biased}(x)')
 grid on
 % Set the color of the axes and the grid to a light gray
 set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
@@ -88,9 +92,11 @@ Ucheck = [zeros(1,length(x_neg)), Uperturbation, zeros(1,length(x_pos))];
 % Plot it
 figure(2)
 plot(xx, Ucheck, 'b')
-title('Perturbation U(x) for the quantum junction')
+% title('Perturbation U(x) for the quantum junction')
 xlabel('x [Å]')
 ylabel('U(x) [eV]')
+ylim([0,0.35])
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 set(gca,'Box','on');
 set(gca,'linewidth',1);
 grid on
@@ -105,14 +111,14 @@ set(gcf, 'Color', [0.7 0.7 0.7]);
 commonTerm = 2*elm*qel/hbar^2;
 % for x<0
 k0min = real(sqrt((Emin + 1i*damping) * commonTerm));
-wavelenght0min = 2*pi*(1E+10)/k0min % Å, Shortest Wavelength
+wavelenght0max = 2*pi*(1E+10)/k0min % Å, Shortest Wavelength
 k0max = real(sqrt((Emax + 1i*damping) * commonTerm));
-wavelenght0max = 2*pi*(1E+10)/k0max % Å, Longest Wavelength
+wavelenght0min = 2*pi*(1E+10)/k0max % Å, Longest Wavelength
 % for x>0
 k1min = real(sqrt((Emin - Ebias + 1i*damping) * commonTerm));
-wavelenght1min = 2*pi*(1E+10)/k1min % Å, Shortest Wavelength
+wavelenght1max = 2*pi*(1E+10)/k1min % Å, Shortest Wavelength
 k1max = real(sqrt((Emax - Ebias + 1i*damping) * commonTerm));
-wavelenght1max = 2*pi*(1E+10)/k1max % Å, Longest Wavelength
+wavelenght1min = 2*pi*(1E+10)/k1max % Å, Longest Wavelength
 
 
 %% LOCALIZED GREEN'S FUNCTION METHOD
@@ -121,29 +127,7 @@ wavelenght1max = 2*pi*(1E+10)/k1max % Å, Longest Wavelength
 
 % Production of R(E), T(E) and A(E) curves for the biased quantum junction
 % Same conditions as in Exercise 1, except step which is the bias now.
-for i=1:numE
-    [RR(i), TT(i), AA(i)] = RTA(Ebias, EE(i), damping, x_U, Uperturbation, x_step, ekinscale);
-end
-
-% Plot of R(E), T(E) and A(E)
-figure;
-plot(EE, RR, 'LineWidth', 2);
-hold on;
-plot(EE, TT, 'LineWidth', 2);
-plot(EE, AA, 'LineWidth', 2);
-title('R(E), T(E) and A(E) for the Biased Quantum Junction', 'fontsize', 26);
-xlabel('E (eV)','FontSize',18);
-ylabel('R(E), T(E), A(E)','FontSize',18);
-ylim([0,1]);
-set(gca,'Box','on');
-set(gca,'linewidth',1);
-grid on;
-% Set the color of the axes and the grid to a light gray
-set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
-% Set the background color of the figure to a darker gray
-set(gcf, 'Color', [0.7 0.7 0.7]);
-% set(gca,'TickLength',[0.03, 0.02]);
-legend('R(E)', 'T(E)', 'A(E)', 'Location', 'Best');
+[RR, TT, AA] = RTA(Ebias, EE, damping, x_U, Uperturbation, x_step, ekinscale);
 
 
 %% ELECTRON AT THE FERMI LEVEL
@@ -164,12 +148,14 @@ U0max_biased = [zeros(1,length(x_neg)), Ubiased, U0max*ones(1,length(x_pos))];
 % Plot the biased potential U(x)
 figure(4)
 plot(xx, Ufull, 'b', xx, U0min_biased, 'r', xx, U0max_biased, 'g')
-title('Potential U(x) for the quantum junction')
+% title('Potential U(x) for the quantum junction')
 xlabel('x [Å]')
 ylabel('U(x) [eV]')
+ylim([-0.25,0.45])
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 set(gca,'Box','on');
 set(gca,'linewidth',1);
-legend('U(x)', 'U(x) + U_{biased}(x) [U_{1}(x)=-0.2eV]', 'U_{biased}(x) [U_{1}(x)=0.2eV]')
+legend('U(x)', 'U(x) + U_{biased}(x) [U_{1}(x)=-0.2eV]', 'U(x) + U_{biased}(x) [U_{1}(x)=0.2eV]', 'Location', 'Best')
 grid on
 % Set the color of the axes and the grid to a light gray
 set(gca, 'Color', [0.9 0.9 0.9], 'GridColor', [0.5 0.5 0.5]);
@@ -180,7 +166,7 @@ set(gcf, 'Color', [0.7 0.7 0.7]);
 
 %% RTA FOR THE ELECTRON AT THE FERMI LEVEL
 % Fine U1 step of 0.0005eV, compute current-bias curve in this range of bias
-% Electrical resistance, diode?
+% Electrical resistance, diode? Resonant-tunneling diode!
 setE=0.01; % eV, E0
 
 EE = (Emin + E_step/2 + U0min):E_step:(Emax - E_step/2 + U0min); % eV, Discretized energy
@@ -190,7 +176,7 @@ for i=1:length(EE)
         perturbation(j) = EE(i)*x_U(j)/(xmax-xmin) - EE(i);
     end
     Upertu=Ux+perturbation;
-    [RR(i), TT(i), AA(i)] = RTA(EE(i), setE, damping, x_U, Upertu, x_step, ekinscale);
+    [RR(i), TT(i), AA(i)] = RTA_iter(EE(i), setE, damping, x_U, Upertu, x_step, ekinscale);
 end
 
 
@@ -201,9 +187,10 @@ plot(-EE, RR, 'LineWidth', 2);
 hold on;
 plot(-EE, TT, 'LineWidth', 2);
 plot(-EE, AA, 'LineWidth', 2);
-title('R(E), T(E) and A(E) for the Biased Quantum Junction', 'fontsize', 26);
-xlabel('E (eV)','FontSize',18);
-ylabel('R(E), T(E), A(E)','FontSize',18);
+% title('R(E), T(E) and A(E) for the Biased Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',26);
+ylabel('R(E), T(E), A(E)','FontSize',26);
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 ylim([0,1]);
 set(gca,'Box','on');
 set(gca,'linewidth',1);
@@ -223,9 +210,10 @@ plot(-EE, RR, 'LineWidth', 2);
 hold on;
 plot(-EE, TT, 'LineWidth', 2);
 plot(-EE, AA, 'LineWidth', 2);
-title('R(E), T(E) and A(E) for the Biased Quantum Junction', 'fontsize', 26);
-xlabel('E (eV)','FontSize',18);
-ylabel('R(E), T(E), A(E)','FontSize',18);
+% title('R(E), T(E) and A(E) for the Biased Quantum Junction', 'fontsize', 26);
+xlabel('E (eV)','FontSize',26);
+ylabel('R(E), T(E), A(E)','FontSize',26);
+fontsize(gca, 22,'points')   % 'pixels', 'centimeters', 'inches'
 xlim([0.06,0.07]);
 ylim([0,0.2]);
 set(gca,'Box','on');
